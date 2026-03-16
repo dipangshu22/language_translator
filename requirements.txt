@@ -3,4 +3,3 @@ uvicorn
 googletrans==4.0.0-rc1
 pydantic
 python-multipart
-python-3.10.11
