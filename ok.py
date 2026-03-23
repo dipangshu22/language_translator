@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 from googletrans import Translator
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 translator = Translator()
 
-# CORS (allow frontend/mobile apps)
+# Allow mobile / web apps to call the API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,7 +15,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Supported languages
 languages = {
     "hindi": "hi",
     "french": "fr",
@@ -35,53 +34,31 @@ languages = {
     "assamese": "as"
 }
 
-# Request model
 class TranslateRequest(BaseModel):
     text: str
     language: str
 
 
-# Home route
 @app.get("/")
 def home():
-    return {"message": "Translator API running 🚀"}
+    return {"message": "Translator API running"}
 
 
-# ✅ POST route (main API)
+
+
 @app.post("/translate")
 def translate(req: TranslateRequest):
     lang = req.language.lower()
 
     if lang not in languages:
-        raise HTTPException(status_code=400, detail="Language not supported")
+        return {"error": "Language not supported"}
 
     try:
         result = translator.translate(req.text, dest=languages[lang])
-        return {
-            "original": req.text,
-            "translated": result.text,
-            "language": lang
-        }
+        return {"translated": result.text}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-
-@app.get("/translate")
-def translate_get(text: str, language: str):
-    lang = language.lower()
-
-    if lang not in languages:
-        raise HTTPException(status_code=400, detail="Language not supported")
-
-    try:
-        result = translator.translate(text, dest=languages[lang])
-        return {
-            "original": text,
-            "translated": result.text,
-            "language": lang
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}
+    
+    
+    
